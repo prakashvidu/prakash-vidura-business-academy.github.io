@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>💎 PV ACADEMY - PREDICTOR V6.8</title>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --gold: #FFD700;
+            --bg-dark: #020205;
+            --card-bg: rgba(20, 20, 35, 0.95);
+        }
+
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            font-family: 'Rajdhani', sans-serif; 
+            background: var(--bg-dark); color: #fff; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        }
+
+        /* Splash Screen */
+        #splash {
+            position: fixed; inset: 0; background: #000; z-index: 20000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .loader-ring {
+            width: 80px; height: 80px; border: 4px solid #111; border-top: 4px solid var(--primary);
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Card UI */
+        .card { 
+            background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 40px; padding: 35px 25px; backdrop-filter: blur(30px); 
+            width: 92%; max-width: 460px; text-align: center; display: none; 
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative;
+        }
+        .card.active { display: block; animation: zoomIn 0.5s; }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .logo-title { font-family: 'Audiowide'; font-size: 24px; color: var(--primary); text-shadow: 0 0 15px var(--primary); margin-bottom: 5px; }
+        .sub-title { font-size: 12px; color: var(--gold); letter-spacing: 3px; font-weight: 700; text-transform: uppercase; margin-bottom: 25px; }
+
+        .status-card {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1));
+            border: 1px solid var(--gold); padding: 15px; border-radius: 20px; margin-bottom: 20px;
+            display: flex; justify-content: space-around; align-items: center;
+        }
+        .status-label { font-size: 13px; font-weight: 700; color: #fff; }
+        .status-value { font-size: 16px; font-weight: 800; color: var(--gold); }
+
+        .input-field { 
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid #333; 
+            padding: 18px; border-radius: 18px; color: #fff; font-size: 18px; text-align: center; margin-bottom: 12px;
+        }
+        
+        .btn-main { 
+            width: 100%; padding: 18px; border-radius: 18px; border: none; 
+            font-weight: 800; font-size: 16px; text-transform: uppercase; cursor: pointer; 
+            transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+        }
+        .btn-cyan { background: linear-gradient(135deg, #00f2ff, #0072ff); color: #fff; }
+        .btn-tg { background: #24A1DE; color: white; text-decoration: none; margin-top: 20px; font-size: 14px; }
+
+        #ai-loader { display: none; margin: 25px 0; }
+        .circle-loader {
+            width: 50px; height: 50px; border: 4px solid rgba(0, 242, 255, 0.1);
+            border-top: 4px solid var(--primary); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 10px;
+        }
+
+        .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .sig-box { 
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); 
+            padding: 20px 10px; border-radius: 20px; opacity: 0; transition: 0.5s;
+        }
+        .sig-box.active { opacity: 1; border-color: var(--primary); }
+        .sig-time { font-family: 'Audiowide'; font-size: 20px; color: #fff; display: block; }
+        .sig-target { color: var(--gold); font-weight: 800; font-size: 14px; display: block; }
+
+        .footer-text { margin-top: 30px; font-size: 11px; color: #666; letter-spacing: 1px; font-weight: 600; }
+        #toast { position: fixed; top: 20px; background: var(--primary); color: #000; padding: 12px 30px; border-radius: 50px; font-weight: 800; transform: translateY(-100px); transition: 0.5s; z-index: 30000; }
+    </style>
+</head>
+<body>
+
+    <div id="splash">
+        <div class="loader-ring"></div>
+        <div class="logo-title">PV ACADEMY</div>
+        <div style="color: #444; font-size: 12px; letter-spacing: 2px;">SECURE CONNECTION...</div>
+    </div>
+
+    <div id="toast">✅ COPIED!</div>
+
+    <div class="card active" id="login-card">
+        <div class="logo-title">PRAKASH VIDURA</div>
+        <div class="sub-title">BUSINESS ACADEMY</div>
+        <p style="color: #888; font-size: 14px;">ENTER ACCESS PASSWORD</p>
+        <input type="password" id="pass" class="input-field" placeholder="••••">
+        <button class="btn-main btn-cyan" onclick="handleLogin()">LOGIN ⚡</button>
+        <div class="footer-text">This Site Created By Prakash Vidura Lakshshan</div>
+    </div>
+
+    <div class="card" id="engine-card">
+        <div class="logo-title" style="font-size: 18px;">PV BUSINESS ACADEMY</div>
+        <div class="sub-title" style="margin-bottom: 15px;">PREDICTOR ENGINE V6.8</div>
+
+        <div class="status-card">
+            <div>
+                <div class="status-label">STATUS</div>
+                <div class="status-value" style="color: #00ff88;">PREMIUM</div>
+            </div>
+            <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1);"></div>
+            <div>
+                <div class="status-label">VALIDITY</div>
+                <div class="status-value" id="validity-text">30 Days</div>
+            </div>
+        </div>
+
+        <input type="number" id="last-odd" class="input-field" placeholder="Last Odd (e.g. 1.80)">
+        
+        <div id="ai-loader">
+            <div class="circle-loader"></div>
+            <div style="color: var(--primary); font-size: 12px; font-weight: bold;">GENERATING SIGNALS...</div>
+        </div>
+
+        <button id="gen-btn" class="btn-main btn-cyan" onclick="startScanning()">⚡ GENERATE SIGNALS</button>
+        
+        <div class="signal-grid" id="signal-grid"></div>
+
+        <button id="copy-btn" class="btn-main" style="display:none; background: rgba(255,255,255,0.05); color: #fff; font-size: 14px;" onclick="copySignals()">📋 COPY ALL SIGNALS</button>
+
+        <a href="https://t.me/Beting_Trips_Prakash_Academy" target="_blank" class="btn-main btn-tg">JOIN TELEGRAM CHANNEL</a>
+        <div class="footer-text">This Site Created By Prakash Vidura Lakshshan</div>
+    </div>
+
+    <script>
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('splash').style.display = 'none';
+            }, 3000);
+        };
+
+        function handleLogin() {
+            const p = document.getElementById('pass').value.trim();
+            const ACCESS_KEY = "2008"; 
+
+            if (p === ACCESS_KEY) {
+                showCard('engine-card');
+            } else {
+                alert("වැරදි මුරපදයක්!");
+            }
+        }
+
+        function startScanning() {
+            if(!document.getElementById('last-odd').value) return alert("අවසාන Odd අගය ඇතුළත් කරන්න.");
+
+            document.getElementById('gen-btn').style.display = 'none';
+            document.getElementById('signal-grid').innerHTML = '';
+            document.getElementById('ai-loader').style.display = 'block';
+
+            setTimeout(renderSignals, 3000);
+        }
+
+        function renderSignals() {
+            document.getElementById('ai-loader').style.display = 'none';
+            const grid = document.getElementById('signal-grid');
+            
+            for(let i=0; i<4; i++) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + (i * 4) + 2);
+                
+                // තත්පර රහිතව කාලය සැකසීම (HH:MM)
+                const time = now.getHours().toString().padStart(2,'0') + ":" + 
+                           now.getMinutes().toString().padStart(2,'0');
+
+                const target = (Math.random() * (12 - 2) + 2).toFixed(2) + "x";
+
+                const box = document.createElement('div');
+                box.className = 'sig-box';
+                box.innerHTML = `<span class="sig-time">${time}</span><span class="sig-target">TARGET: ${target}</span>`;
+                grid.appendChild(box);
+                setTimeout(() => box.classList.add('active'), i * 150);
+            }
+            document.getElementById('copy-btn').style.display = 'flex';
+            document.getElementById('gen-btn').style.display = 'flex';
+        }
+
+        function copySignals() {
+            let text = "💎 PV BUSINESS ACADEMY 💎\n\n";
+            document.querySelectorAll('.sig-box').forEach((b, i) => {
+                const time = b.querySelector('.sig-time').innerText;
+                const target = b.querySelector('.sig-target').innerText;
+                text += `🚀 ROUND 0${i+1}: ${time} ➔ ${target}\n`;
+            });
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const t = document.getElementById('toast');
+                t.style.transform = "translateY(0)";
+                setTimeout(() => t.style.transform = "translateY(-100px)", 2000);
+            }).catch(err => {
+                alert("Copy failed. Please try manually.");
+            });
+        }
+
+        function showCard(id) {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
