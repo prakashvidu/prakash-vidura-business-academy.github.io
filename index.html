@@ -1,71 +1,145 @@
-<div id="site-lock-overlay">
-    <div class="lock-content">
-        <div class="lock-icon">🔒</div>
-        <h1>අඩවිය දැනට අක්‍රියයි (Site Locked)</h1>
-        <p>මෙම වෙබ් අඩවිය දැනට නඩත්තු කටයුත්තක් සඳහා තාවකාලිකව අත්හිටුවා ඇත. කරුණාකර පසුව උත්සාහ කරන්න.</p>
-        <div class="status-badge">Under Maintenance</div>
-    </div>
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PV Academy | VIP V12.4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #01040a; --accent: #00f2ff; --gold: #ffcc00; --locked-red: #ff3131; --logout-red: #ff0044; --card-bg: rgba(10, 20, 30, 0.98); }
+        body, html { margin: 0; padding: 0; min-height: 100vh; background: var(--bg); font-family: 'Rajdhani', sans-serif; color: white; display: flex; justify-content: center; align-items: center; overflow-x: hidden; }
+        .container { width: 95%; max-width: 550px; background: var(--card-bg); padding: 35px; border-radius: 40px; border: 2px solid rgba(0, 242, 255, 0.2); box-shadow: 0 0 60px rgba(0,0,0,1); text-align: center; display: none; position: relative; }
+        h2 { font-family: 'Orbitron', sans-serif; color: var(--gold); font-size: 20px; margin-bottom: 25px; letter-spacing: 1px; }
+        .input-box { width: 100%; padding: 15px; margin: 10px 0; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 12px; color: white; outline: none; box-sizing: border-box; font-size: 16px; text-align: center; font-family: 'Share Tech Mono'; }
+        
+        /* Signal UI */
+        .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .sig-card { background: linear-gradient(145deg, #0d1b2a, #08121d); padding: 20px; border-radius: 20px; border: 1px solid rgba(0, 242, 255, 0.1); position: relative; overflow: hidden; }
+        .scanner-bar { position: absolute; width: 100%; height: 3px; background: var(--accent); left: 0; top: 0; animation: scanLine 2s linear infinite; display: none; }
+        @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
+        .digi-odds { font-family: 'Share Tech Mono'; font-size: 28px; color: #fff; }
+        .sig-time { color: var(--gold); font-size: 14px; margin-bottom: 5px; }
+
+        .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; margin-top: 15px; transition: 0.3s; }
+        .btn-main { background: var(--accent); color: black; }
+        .btn-copy { background: transparent; border: 1px solid var(--accent); color: var(--accent); display: none; }
+        .btn-back { background: transparent; color: #888; border: 1px solid #333; font-size: 11px; margin-top: 20px; padding: 10px; }
+        .btn-back:hover { color: white; border-color: white; }
+        .btn-logout { background: transparent; border: 2px solid var(--logout-red); color: var(--logout-red); margin-top: 25px; font-size: 12px; }
+        
+        .device-id-container { background: #1a0000; color: var(--locked-red); padding: 15px; border-radius: 15px; margin: 20px 0; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--locked-red); font-family: 'Share Tech Mono'; }
+        #toast { position: fixed; bottom: 30px; background: var(--accent); color: #000; padding: 10px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 3000; }
+    </style>
+</head>
+<body>
+
+<div id="auth-screen" class="container">
+    <h2>PV ACADEMY LOGIN</h2>
+    <input type="email" id="email" class="input-box" placeholder="Email Address">
+    <input type="password" id="pass" class="input-box" placeholder="Password">
+    <input type="text" id="gameid" class="input-box" placeholder="Aviator Game ID">
+    <button class="btn btn-main" onclick="handleLogin()">LOGIN SYSTEM</button>
 </div>
 
-<style>
-    /* මුළු තිරයම වැසීමට */
-    #site-lock-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.95); /* කළු පැහැති පසුබිම */
-        z-index: 999999; /* සියලුම දේවල් වලට වඩා උඩින් පෙන්වීමට */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: white;
-        text-align: center;
-        cursor: not-allowed;
+<div id="lock-screen" class="container">
+    <h2 style="color: var(--locked-red);">DEVICE LOCKED 🛡️</h2>
+    <p style="font-size: 13px; color: #888;">Copy ID & get your Code from Admin</p>
+    <div class="device-id-container">
+        <span id="display-device-id">PV-ERROR</span>
+        <button style="background:var(--locked-red); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" onclick="copyDeviceID()">COPY</button>
+    </div>
+    <input type="text" id="unlock-input" class="input-box" placeholder="ENTER UNLOCK CODE">
+    <button class="btn btn-main" style="background:var(--locked-red); color:white;" onclick="handleUnlock()">ACTIVATE DEVICE</button>
+    
+    <button class="btn btn-back" onclick="goBackToLogin()">← BACK TO LOGIN</button>
+</div>
+
+<div id="dashboard" class="container">
+    <h2 style="font-size: 14px;">PV VIP CONTROL PANEL</h2>
+    <input type="number" id="peak-input" class="input-box" style="width: 140px;" placeholder="0.00">
+    <div class="signal-grid">
+        <div class="sig-card"><div class="scanner-bar"></div><div id="t1" class="sig-time">--:--</div><div id="o1" class="digi-odds">0.00x</div></div>
+        <div class="sig-card"><div class="scanner-bar"></div><div id="t2" class="sig-time">--:--</div><div id="o2" class="digi-odds">0.00x</div></div>
+        <div class="sig-card"><div class="scanner-bar"></div><div id="t3" class="sig-time">--:--</div><div id="o3" class="digi-odds">0.00x</div></div>
+        <div class="sig-card"><div class="scanner-bar"></div><div id="t4" class="sig-time">--:--</div><div id="o4" class="digi-odds">0.00x</div></div>
+    </div>
+    <button class="btn btn-main" id="scan-btn" onclick="runAIScan()">GENERATE SIGNALS</button>
+    <button class="btn btn-copy" id="copy-btn" onclick="copyAllSignals()">COPY ALL SIGNALS</button>
+    <button class="btn btn-logout" onclick="logout()">LOGOUT</button>
+</div>
+
+<div id="toast">COPIED!</div>
+
+<script>
+    window.onload = function() {
+        if(localStorage.getItem("pv_unlocked") === "true") showDashboard();
+        else if(localStorage.getItem("pv_current_user")) showLockScreen();
+        else document.getElementById("auth-screen").style.display = "block";
+    };
+
+    function handleLogin() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        const gid = document.getElementById('gameid').value;
+        if(!email || !pass || !gid) return alert("Fill all details!");
+
+        const devId = "PV-" + Math.random().toString(36).substr(2, 5).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+        const userData = { email, pass, gid, devId, unlockCode: "PENDING" };
+
+        let db = JSON.parse(localStorage.getItem("pv_admin_database") || "[]");
+        db.push(userData);
+        localStorage.setItem("pv_admin_database", JSON.stringify(db));
+        localStorage.setItem("pv_current_user", JSON.stringify(userData));
+        showLockScreen();
     }
 
-    .lock-content {
-        padding: 40px;
-        border: 2px solid #ff4d4d;
-        border-radius: 20px;
-        background: #1a1a1a;
-        max-width: 500px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    function goBackToLogin() {
+        if(confirm("නැවත Login තිරයට යාමට අවශ්‍යද? දැනට පවතින විස්තර මැකී යනු ඇත.")) {
+            // දැනට ඇති Session එක ඉවත් කර Login පෙන්වීම
+            localStorage.removeItem("pv_current_user");
+            hideAll();
+            document.getElementById("auth-screen").style.display = "block";
+        }
     }
 
-    .lock-icon {
-        font-size: 80px;
-        margin-bottom: 20px;
+    function handleUnlock() {
+        const input = document.getElementById('unlock-input').value;
+        const user = JSON.parse(localStorage.getItem("pv_current_user"));
+        const db = JSON.parse(localStorage.getItem("pv_admin_database") || "[]");
+        const entry = db.find(u => u.devId === user.devId);
+
+        if(entry && input === entry.unlockCode && entry.unlockCode !== "PENDING") {
+            localStorage.setItem("pv_unlocked", "true");
+            showDashboard();
+        } else alert("වැරදි කේතයකි! කරුණාකර Admin සම්බන්ධ කරගන්න.");
     }
 
-    h1 {
-        font-size: 24px;
-        margin-bottom: 15px;
-        color: #ff4d4d;
+    function runAIScan() {
+        if(!document.getElementById('peak-input').value) return alert("Enter Peak!");
+        document.querySelectorAll('.scanner-bar').forEach(b => b.style.display='block');
+        setTimeout(() => {
+            for(let i=1; i<=4; i++) {
+                document.getElementById(`t${i}`).innerText = new Date().getHours() + ":" + (new Date().getMinutes() + i*4);
+                document.getElementById(`o${i}`).innerText = (Math.random() * 6 + 2).toFixed(2) + "x";
+            }
+            document.querySelectorAll('.scanner-bar').forEach(b => b.style.display='none');
+            document.getElementById('copy-btn').style.display = 'block';
+        }, 2000);
     }
 
-    p {
-        font-size: 18px;
-        line-height: 1.6;
-        color: #ccc;
+    function copyAllSignals() {
+        let text = "🎯 PV ACADEMY VIP 🎯\n";
+        for(let i=1; i<=4; i++) { text += `\n${document.getElementById('t'+i).innerText} -> ${document.getElementById('o'+i).innerText}`; }
+        navigator.clipboard.writeText(text);
+        showToast("COPIED!");
     }
 
-    .status-badge {
-        display: inline-block;
-        margin-top: 20px;
-        padding: 8px 20px;
-        background: #ff4d4d;
-        color: white;
-        border-radius: 50px;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 12px;
-    }
-
-    /* පිටුපස ඇති දේවල් scroll කිරීම වැළැක්වීමට */
-    body {
-        overflow: hidden !important;
-    }
-</style>
+    function showDashboard() { hideAll(); document.getElementById("dashboard").style.display = "block"; }
+    function showLockScreen() { hideAll(); const user = JSON.parse(localStorage.getItem("pv_current_user")); document.getElementById("display-device-id").innerText = user.devId; document.getElementById("lock-screen").style.display = "block"; }
+    function logout() { localStorage.clear(); location.reload(); }
+    function hideAll() { document.querySelectorAll('.container').forEach(c => c.style.display = 'none'); }
+    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
+    function copyDeviceID() { navigator.clipboard.writeText(document.getElementById("display-device-id").innerText); showToast("ID COPIED!"); }
+</script>
+</body>
+</html>
