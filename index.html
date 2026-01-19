@@ -3,65 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PV Academy | VIP V12.4</title>
+    <title>Prakash Vidura Business Academy | VIP</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #01040a; --accent: #00f2ff; --gold: #ffcc00; --logout-red: #ff0044; --card-bg: rgba(10, 20, 30, 0.98); }
+        :root { --bg: #01040a; --accent: #00f2ff; --gold: #ffcc00; --logout-red: #ff0044; --card-bg: rgba(10, 20, 30, 0.98); --wa-green: #25d366; }
         body, html { margin: 0; padding: 0; min-height: 100vh; background: var(--bg); font-family: 'Rajdhani', sans-serif; color: white; display: flex; justify-content: center; align-items: center; overflow-x: hidden; }
         
-        .container { width: 95%; max-width: 550px; background: var(--card-bg); padding: 35px; border-radius: 40px; border: 2px solid rgba(0, 242, 255, 0.2); box-shadow: 0 0 60px rgba(0,0,0,1); text-align: center; display: none; position: relative; }
-        
-        /* Dashboard එක විශාල කිරීම */
-        #dashboard { max-width: 700px; width: 95%; padding: 45px; }
+        /* Loading Screen */
+        #loading-screen { position: fixed; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .loader { border: 4px solid #111; border-top: 4px solid var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-top: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        h2 { font-family: 'Orbitron', sans-serif; color: var(--gold); font-size: 22px; margin-bottom: 25px; letter-spacing: 1px; }
+        .container { width: 95%; max-width: 550px; background: var(--card-bg); padding: 35px; border-radius: 40px; border: 2px solid rgba(0, 242, 255, 0.2); box-shadow: 0 0 60px rgba(0,0,0,1); text-align: center; display: none; position: relative; }
+        #dashboard { max-width: 700px; padding: 45px; }
+
+        h2 { font-family: 'Orbitron', sans-serif; color: var(--gold); font-size: 20px; margin-bottom: 25px; letter-spacing: 1px; }
         .input-box { width: 100%; padding: 15px; margin: 10px 0; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 12px; color: white; outline: none; box-sizing: border-box; font-size: 16px; text-align: center; font-family: 'Share Tech Mono'; }
         
-        /* Signal UI Grid එක විශාල කිරීම */
         .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; }
-        .sig-card { background: linear-gradient(145deg, #0d1b2a, #08121d); padding: 30px 20px; border-radius: 25px; border: 1px solid rgba(0, 242, 255, 0.2); position: relative; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .sig-card { background: linear-gradient(145deg, #0d1b2a, #08121d); padding: 30px 20px; border-radius: 25px; border: 1px solid rgba(0, 242, 255, 0.2); position: relative; overflow: hidden; }
         .scanner-bar { position: absolute; width: 100%; height: 3px; background: var(--accent); left: 0; top: 0; animation: scanLine 2s linear infinite; display: none; }
         @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
         
         .digi-odds { font-family: 'Share Tech Mono'; font-size: 36px; color: #fff; text-shadow: 0 0 10px var(--accent); }
         .sig-time { color: var(--gold); font-size: 16px; margin-bottom: 8px; font-weight: bold; }
 
-        .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; margin-top: 15px; transition: 0.3s; }
+        .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; margin-top: 15px; transition: 0.3s; text-decoration: none; display: block; box-sizing: border-box; }
         .btn-main { background: var(--accent); color: black; box-shadow: 0 0 15px rgba(0, 242, 255, 0.4); }
-        .btn-main:hover { transform: scale(1.02); background: #00d4df; }
+        .btn-wa { background: var(--wa-green); color: white; font-size: 14px; margin-top: 10px; border: 2px solid rgba(255,255,255,0.2); }
         .btn-copy { background: transparent; border: 1px solid var(--accent); color: var(--accent); display: none; }
         .btn-logout { background: transparent; border: 2px solid var(--logout-red); color: var(--logout-red); margin-top: 30px; font-size: 12px; }
         
-        /* Custom Alert Box Style */
-        #custom-alert { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a0000; border: 2px solid var(--logout-red); padding: 25px; border-radius: 20px; z-index: 5000; width: 300px; display: none; box-shadow: 0 0 50px rgba(255, 0, 0, 0.3); text-align: left; }
-        #custom-alert h3 { color: var(--logout-red); margin-top: 0; font-family: 'Orbitron'; font-size: 16px; text-align: center; }
-        #custom-alert ul { padding-left: 20px; color: #ffcccc; list-style-type: '❌ '; line-height: 1.6; }
-        #alert-close { background: var(--logout-red); color: white; border: none; width: 100%; padding: 10px; margin-top: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        /* Error Alert */
+        #custom-alert { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a0000; border: 2px solid var(--logout-red); padding: 25px; border-radius: 20px; z-index: 10000; width: 300px; display: none; }
+        #custom-alert ul { padding-left: 20px; color: #ffcccc; list-style-type: '❌ '; }
+        #alert-close { background: var(--logout-red); color: white; border: none; width: 100%; padding: 10px; margin-top: 15px; border-radius: 10px; cursor: pointer; }
 
         #toast { position: fixed; bottom: 30px; background: var(--accent); color: #000; padding: 10px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 3000; }
     </style>
 </head>
 <body>
 
+<div id="loading-screen">
+    <h1 style="font-family: 'Orbitron'; color: var(--accent); font-size: 18px; text-align: center;">PRAKASH VIDURA<br>BUSINESS ACADEMY</h1>
+    <div class="loader"></div>
+</div>
+
 <div id="custom-alert">
-    <h3>ERROR DETECTED</h3>
+    <h3 style="color: var(--logout-red); font-family: 'Orbitron'; font-size: 14px; text-align: center;">ERROR ACCESSING</h3>
     <ul id="error-list"></ul>
-    <button id="alert-close" onclick="closeAlert()">I UNDERSTAND</button>
+    <button id="alert-close" onclick="closeAlert()">CLOSE</button>
 </div>
 
 <div id="auth-screen" class="container">
-    <h2>PV ACADEMY LOGIN</h2>
-    <p style="color: #888; font-size: 14px; margin-bottom: 10px;">Enter System Password to Access</p>
+    <h2>BUSINESS ACADEMY LOGIN</h2>
     <input type="password" id="system-pass" class="input-box" placeholder="SYSTEM PASSWORD">
     <input type="text" id="gameid" class="input-box" placeholder="Aviator Game ID">
     <button class="btn btn-main" onclick="handleLogin()">LOGIN SYSTEM</button>
 </div>
 
 <div id="dashboard" class="container">
-    <h2 style="font-size: 18px;">PV VIP CONTROL PANEL</h2>
+    <h2 style="font-size: 16px;">VIP CONTROL PANEL</h2>
     <div style="margin-bottom: 20px;">
-        <label style="color: #888; font-size: 13px;">ENTER PREVIOUS PEAK</label><br>
-        <input type="number" id="peak-input" class="input-box" style="width: 180px;" placeholder="0.00">
+        <input type="number" id="peak-input" class="input-box" style="width: 180px;" placeholder="ENTER PEAK">
     </div>
     
     <div class="signal-grid">
@@ -72,6 +76,9 @@
     </div>
     
     <button class="btn btn-main" id="scan-btn" onclick="runAIScan()">GENERATE SIGNALS</button>
+    
+    <a href="https://chat.whatsapp.com/Fqg7jMmn3gmEAizMqJytA7" target="_blank" class="btn btn-wa">JOIN WHATSAPP GROUP</a>
+    
     <button class="btn btn-copy" id="copy-btn" onclick="copyAllSignals()">COPY ALL SIGNALS</button>
     <button class="btn btn-logout" onclick="logout()">LOGOUT SYSTEM</button>
 </div>
@@ -82,11 +89,15 @@
     const CORRECT_PASSWORD = "PVACADEMY-2026-V02";
 
     window.onload = function() {
-        if(sessionStorage.getItem("pv_authenticated") === "true") {
-            showDashboard();
-        } else {
-            document.getElementById("auth-screen").style.display = "block";
-        }
+        // Loading screen delay
+        setTimeout(() => {
+            document.getElementById("loading-screen").style.display = "none";
+            if(sessionStorage.getItem("pv_authenticated") === "true") {
+                showDashboard();
+            } else {
+                document.getElementById("auth-screen").style.display = "block";
+            }
+        }, 3000); // 3 seconds loading
     };
 
     function showAlert(errors) {
@@ -100,46 +111,35 @@
         document.getElementById('custom-alert').style.display = 'block';
     }
 
-    function closeAlert() {
-        document.getElementById('custom-alert').style.display = 'none';
-    }
+    function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
     function handleLogin() {
         const passInput = document.getElementById('system-pass').value;
         const gid = document.getElementById('gameid').value;
         let errors = [];
 
-        if(!passInput) errors.push("මුරපදය ඇතුළත් කර නැත.");
-        if(!gid) errors.push("Game ID එක ඇතුළත් කර නැත.");
-        if(passInput && passInput !== CORRECT_PASSWORD) errors.push("මුරපදය වැරදියි.");
+        if(!passInput) errors.push("Password එක අවශ්‍යයි.");
+        if(!gid) errors.push("Game ID එක අවශ්‍යයි.");
+        if(passInput && passInput !== CORRECT_PASSWORD) errors.push("වැරදි මුරපදයක්.");
 
-        if(errors.length > 0) {
-            showAlert(errors);
-            return;
-        }
+        if(errors.length > 0) { showAlert(errors); return; }
 
         sessionStorage.setItem("pv_authenticated", "true");
         showDashboard();
     }
 
     function runAIScan() {
-        const peak = document.getElementById('peak-input').value;
-        if(!peak) {
-            showAlert(["කරුණාකර Peak අගය ඇතුළත් කරන්න."]);
+        if(!document.getElementById('peak-input').value) {
+            showAlert(["Peak අගය ඇතුළත් කරන්න."]);
             return;
         }
-        
         document.querySelectorAll('.scanner-bar').forEach(b => b.style.display='block');
-        
         setTimeout(() => {
             for(let i=1; i<=4; i++) {
                 let now = new Date();
                 let futureTime = new Date(now.getTime() + (i * 4 * 60000));
-                let hours = futureTime.getHours().toString().padStart(2, '0');
-                let minutes = futureTime.getMinutes().toString().padStart(2, '0');
-                
-                document.getElementById(`t${i}`).innerText = hours + ":" + minutes;
-                document.getElementById(`o${i}`).innerText = (Math.random() * 6 + 2).toFixed(2) + "x";
+                document.getElementById(`t${i}`).innerText = futureTime.getHours().toString().padStart(2, '0') + ":" + futureTime.getMinutes().toString().padStart(2, '0');
+                document.getElementById(`o${i}`).innerText = (Math.random() * 5 + 1.5).toFixed(2) + "x";
             }
             document.querySelectorAll('.scanner-bar').forEach(b => b.style.display='none');
             document.getElementById('copy-btn').style.display = 'block';
@@ -147,34 +147,16 @@
     }
 
     function copyAllSignals() {
-        let text = "🎯 PV ACADEMY VIP 🎯\n";
-        for(let i=1; i<=4; i++) { 
-            text += `\n${document.getElementById('t'+i).innerText} -> ${document.getElementById('o'+i).innerText}`; 
-        }
+        let text = "🎯 PRAKASH VIDURA ACADEMY VIP 🎯\n";
+        for(let i=1; i<=4; i++) { text += `\n${document.getElementById('t'+i).innerText} -> ${document.getElementById('o'+i).innerText}`; }
         navigator.clipboard.writeText(text);
         showToast("COPIED!");
     }
 
-    function showDashboard() { 
-        hideAll(); 
-        document.getElementById("dashboard").style.display = "block"; 
-    }
-
-    function logout() { 
-        sessionStorage.clear(); 
-        location.reload(); 
-    }
-
-    function hideAll() { 
-        document.querySelectorAll('.container').forEach(c => c.style.display = 'none'); 
-    }
-
-    function showToast(m) { 
-        const t = document.getElementById('toast'); 
-        t.innerText = m; 
-        t.style.display = 'block'; 
-        setTimeout(() => t.style.display = 'none', 2000); 
-    }
+    function showDashboard() { hideAll(); document.getElementById("dashboard").style.display = "block"; }
+    function logout() { sessionStorage.clear(); location.reload(); }
+    function hideAll() { document.querySelectorAll('.container').forEach(c => c.style.display = 'none'); }
+    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
 </script>
 </body>
 </html>
