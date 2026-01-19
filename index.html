@@ -6,7 +6,7 @@
     <title>PV Academy | VIP V12.4</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #01040a; --accent: #00f2ff; --gold: #ffcc00; --locked-red: #ff3131; --logout-red: #ff0044; --card-bg: rgba(10, 20, 30, 0.98); }
+        :root { --bg: #01040a; --accent: #00f2ff; --gold: #ffcc00; --logout-red: #ff0044; --card-bg: rgba(10, 20, 30, 0.98); }
         body, html { margin: 0; padding: 0; min-height: 100vh; background: var(--bg); font-family: 'Rajdhani', sans-serif; color: white; display: flex; justify-content: center; align-items: center; overflow-x: hidden; }
         .container { width: 95%; max-width: 550px; background: var(--card-bg); padding: 35px; border-radius: 40px; border: 2px solid rgba(0, 242, 255, 0.2); box-shadow: 0 0 60px rgba(0,0,0,1); text-align: center; display: none; position: relative; }
         h2 { font-family: 'Orbitron', sans-serif; color: var(--gold); font-size: 20px; margin-bottom: 25px; letter-spacing: 1px; }
@@ -23,11 +23,8 @@
         .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; margin-top: 15px; transition: 0.3s; }
         .btn-main { background: var(--accent); color: black; }
         .btn-copy { background: transparent; border: 1px solid var(--accent); color: var(--accent); display: none; }
-        .btn-back { background: transparent; color: #888; border: 1px solid #333; font-size: 11px; margin-top: 20px; padding: 10px; }
-        .btn-back:hover { color: white; border-color: white; }
         .btn-logout { background: transparent; border: 2px solid var(--logout-red); color: var(--logout-red); margin-top: 25px; font-size: 12px; }
         
-        .device-id-container { background: #1a0000; color: var(--locked-red); padding: 15px; border-radius: 15px; margin: 20px 0; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--locked-red); font-family: 'Share Tech Mono'; }
         #toast { position: fixed; bottom: 30px; background: var(--accent); color: #000; padding: 10px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 3000; }
     </style>
 </head>
@@ -35,23 +32,10 @@
 
 <div id="auth-screen" class="container">
     <h2>PV ACADEMY LOGIN</h2>
-    <input type="email" id="email" class="input-box" placeholder="Email Address">
-    <input type="password" id="pass" class="input-box" placeholder="Password">
+    <p style="color: #888; font-size: 14px; margin-bottom: 10px;">Enter System Password to Access</p>
+    <input type="password" id="system-pass" class="input-box" placeholder="SYSTEM PASSWORD">
     <input type="text" id="gameid" class="input-box" placeholder="Aviator Game ID">
     <button class="btn btn-main" onclick="handleLogin()">LOGIN SYSTEM</button>
-</div>
-
-<div id="lock-screen" class="container">
-    <h2 style="color: var(--locked-red);">DEVICE LOCKED 🛡️</h2>
-    <p style="font-size: 13px; color: #888;">Copy ID & get your Code from Admin</p>
-    <div class="device-id-container">
-        <span id="display-device-id">PV-ERROR</span>
-        <button style="background:var(--locked-red); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" onclick="copyDeviceID()">COPY</button>
-    </div>
-    <input type="text" id="unlock-input" class="input-box" placeholder="ENTER UNLOCK CODE">
-    <button class="btn btn-main" style="background:var(--locked-red); color:white;" onclick="handleUnlock()">ACTIVATE DEVICE</button>
-    
-    <button class="btn btn-back" onclick="goBackToLogin()">← BACK TO LOGIN</button>
 </div>
 
 <div id="dashboard" class="container">
@@ -71,55 +55,45 @@
 <div id="toast">COPIED!</div>
 
 <script>
+    const CORRECT_PASSWORD = "PVACADEMY-2026-V02";
+
     window.onload = function() {
-        if(localStorage.getItem("pv_unlocked") === "true") showDashboard();
-        else if(localStorage.getItem("pv_current_user")) showLockScreen();
-        else document.getElementById("auth-screen").style.display = "block";
+        if(sessionStorage.getItem("pv_authenticated") === "true") {
+            showDashboard();
+        } else {
+            document.getElementById("auth-screen").style.display = "block";
+        }
     };
 
     function handleLogin() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('pass').value;
+        const passInput = document.getElementById('system-pass').value;
         const gid = document.getElementById('gameid').value;
-        if(!email || !pass || !gid) return alert("Fill all details!");
 
-        const devId = "PV-" + Math.random().toString(36).substr(2, 5).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
-        const userData = { email, pass, gid, devId, unlockCode: "PENDING" };
-
-        let db = JSON.parse(localStorage.getItem("pv_admin_database") || "[]");
-        db.push(userData);
-        localStorage.setItem("pv_admin_database", JSON.stringify(db));
-        localStorage.setItem("pv_current_user", JSON.stringify(userData));
-        showLockScreen();
-    }
-
-    function goBackToLogin() {
-        if(confirm("නැවත Login තිරයට යාමට අවශ්‍යද? දැනට පවතින විස්තර මැකී යනු ඇත.")) {
-            // දැනට ඇති Session එක ඉවත් කර Login පෙන්වීම
-            localStorage.removeItem("pv_current_user");
-            hideAll();
-            document.getElementById("auth-screen").style.display = "block";
+        if(!passInput || !gid) {
+            return alert("කරුණාකර විස්තර සම්පූර්ණ කරන්න!");
         }
-    }
 
-    function handleUnlock() {
-        const input = document.getElementById('unlock-input').value;
-        const user = JSON.parse(localStorage.getItem("pv_current_user"));
-        const db = JSON.parse(localStorage.getItem("pv_admin_database") || "[]");
-        const entry = db.find(u => u.devId === user.devId);
-
-        if(entry && input === entry.unlockCode && entry.unlockCode !== "PENDING") {
-            localStorage.setItem("pv_unlocked", "true");
+        if(passInput === CORRECT_PASSWORD) {
+            sessionStorage.setItem("pv_authenticated", "true");
             showDashboard();
-        } else alert("වැරදි කේතයකි! කරුණාකර Admin සම්බන්ධ කරගන්න.");
+        } else {
+            alert("වැරදි මුරපදයක්! නැවත උත්සාහ කරන්න.");
+        }
     }
 
     function runAIScan() {
         if(!document.getElementById('peak-input').value) return alert("Enter Peak!");
+        
         document.querySelectorAll('.scanner-bar').forEach(b => b.style.display='block');
+        
         setTimeout(() => {
             for(let i=1; i<=4; i++) {
-                document.getElementById(`t${i}`).innerText = new Date().getHours() + ":" + (new Date().getMinutes() + i*4);
+                let now = new Date();
+                let futureTime = new Date(now.getTime() + (i * 4 * 60000));
+                let hours = futureTime.getHours().toString().padStart(2, '0');
+                let minutes = futureTime.getMinutes().toString().padStart(2, '0');
+                
+                document.getElementById(`t${i}`).innerText = hours + ":" + minutes;
                 document.getElementById(`o${i}`).innerText = (Math.random() * 6 + 2).toFixed(2) + "x";
             }
             document.querySelectorAll('.scanner-bar').forEach(b => b.style.display='none');
@@ -129,17 +103,33 @@
 
     function copyAllSignals() {
         let text = "🎯 PV ACADEMY VIP 🎯\n";
-        for(let i=1; i<=4; i++) { text += `\n${document.getElementById('t'+i).innerText} -> ${document.getElementById('o'+i).innerText}`; }
+        for(let i=1; i<=4; i++) { 
+            text += `\n${document.getElementById('t'+i).innerText} -> ${document.getElementById('o'+i).innerText}`; 
+        }
         navigator.clipboard.writeText(text);
         showToast("COPIED!");
     }
 
-    function showDashboard() { hideAll(); document.getElementById("dashboard").style.display = "block"; }
-    function showLockScreen() { hideAll(); const user = JSON.parse(localStorage.getItem("pv_current_user")); document.getElementById("display-device-id").innerText = user.devId; document.getElementById("lock-screen").style.display = "block"; }
-    function logout() { localStorage.clear(); location.reload(); }
-    function hideAll() { document.querySelectorAll('.container').forEach(c => c.style.display = 'none'); }
-    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
-    function copyDeviceID() { navigator.clipboard.writeText(document.getElementById("display-device-id").innerText); showToast("ID COPIED!"); }
+    function showDashboard() { 
+        hideAll(); 
+        document.getElementById("dashboard").style.display = "block"; 
+    }
+
+    function logout() { 
+        sessionStorage.clear(); 
+        location.reload(); 
+    }
+
+    function hideAll() { 
+        document.querySelectorAll('.container').forEach(c => c.style.display = 'none'); 
+    }
+
+    function showToast(m) { 
+        const t = document.getElementById('toast'); 
+        t.innerText = m; 
+        t.style.display = 'block'; 
+        setTimeout(() => t.style.display = 'none', 2000); 
+    }
 </script>
 </body>
 </html>
