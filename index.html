@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PV Academy | VIP V12.4</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
     <style>
         :root { --bg: #01040a; --accent: #00f2ff; --gold: #ffcc00; --locked-red: #ff3131; --logout-red: #ff0044; --card-bg: rgba(10, 20, 30, 0.98); }
         body, html { margin: 0; padding: 0; min-height: 100vh; background: var(--bg); font-family: 'Rajdhani', sans-serif; color: white; display: flex; justify-content: center; align-items: center; overflow-x: hidden; }
@@ -24,7 +28,6 @@
         .btn-main { background: var(--accent); color: black; }
         .btn-copy { background: transparent; border: 1px solid var(--accent); color: var(--accent); display: none; }
         .btn-back { background: transparent; color: #888; border: 1px solid #333; font-size: 11px; margin-top: 20px; padding: 10px; }
-        .btn-back:hover { color: white; border-color: white; }
         .btn-logout { background: transparent; border: 2px solid var(--logout-red); color: var(--logout-red); margin-top: 25px; font-size: 12px; }
         
         .device-id-container { background: #1a0000; color: var(--locked-red); padding: 15px; border-radius: 15px; margin: 20px 0; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--locked-red); font-family: 'Share Tech Mono'; }
@@ -45,13 +48,12 @@
     <h2 style="color: var(--locked-red);">DEVICE LOCKED 🛡️</h2>
     <p style="font-size: 13px; color: #888;">Copy ID & get your Code from Admin</p>
     <div class="device-id-container">
-        <span id="display-device-id">PV-ERROR</span>
+        <span id="display-device-id">PV-LOADING...</span>
         <button style="background:var(--locked-red); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" onclick="copyDeviceID()">COPY</button>
     </div>
     <input type="text" id="unlock-input" class="input-box" placeholder="ENTER UNLOCK CODE">
     <button class="btn btn-main" style="background:var(--locked-red); color:white;" onclick="handleUnlock()">ACTIVATE DEVICE</button>
-    
-    <button class="btn btn-back" onclick="goBackToLogin()">← BACK TO LOGIN</button>
+    <button class="btn btn-back" onclick="logout()">← BACK TO LOGIN</button>
 </div>
 
 <div id="dashboard" class="container">
@@ -71,47 +73,75 @@
 <div id="toast">COPIED!</div>
 
 <script>
+    // --- Firebase Configuration ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCDIN28pUgBmYqScLzuf7dJNpbE0JDU-TE",
+        authDomain: "prakash-academy-8a60d.firebaseapp.com",
+        projectId: "prakash-academy-8a60d",
+        storageBucket: "prakash-academy-8a60d.firebasestorage.app",
+        messagingSenderId: "13529868262",
+        appId: "1:13529868262:web:4e2c17fc10e9189c085827",
+        databaseURL: "https://prakash-academy-8a60d-default-rtdb.firebaseio.com/" // ඔබේ Database URL එක මෙතනට දාන්න
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
     window.onload = function() {
-        if(localStorage.getItem("pv_unlocked") === "true") showDashboard();
-        else if(localStorage.getItem("pv_current_user")) showLockScreen();
-        else document.getElementById("auth-screen").style.display = "block";
+        const savedUser = localStorage.getItem("pv_user_id");
+        const isUnlocked = localStorage.getItem("pv_unlocked");
+
+        if (isUnlocked === "true") {
+            showDashboard();
+        } else if (savedUser) {
+            showLockScreen(savedUser);
+        } else {
+            document.getElementById("auth-screen").style.display = "block";
+        }
     };
 
     function handleLogin() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
         const gid = document.getElementById('gameid').value;
-        if(!email || !pass || !gid) return alert("Fill all details!");
 
+        if(!email || !pass || !gid) return alert("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න!");
+
+        // Device ID එකක් සෑදීම
         const devId = "PV-" + Math.random().toString(36).substr(2, 5).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
-        const userData = { email, pass, gid, devId, unlockCode: "PENDING" };
+        
+        const userData = {
+            email: email,
+            password: pass,
+            gameId: gid,
+            deviceId: devId,
+            unlockCode: "PENDING",
+            status: "LOCKED"
+        };
 
-        let db = JSON.parse(localStorage.getItem("pv_admin_database") || "[]");
-        db.push(userData);
-        localStorage.setItem("pv_admin_database", JSON.stringify(db));
-        localStorage.setItem("pv_current_user", JSON.stringify(userData));
-        showLockScreen();
-    }
-
-    function goBackToLogin() {
-        if(confirm("නැවත Login තිරයට යාමට අවශ්‍යද? දැනට පවතින විස්තර මැකී යනු ඇත.")) {
-            // දැනට ඇති Session එක ඉවත් කර Login පෙන්වීම
-            localStorage.removeItem("pv_current_user");
-            hideAll();
-            document.getElementById("auth-screen").style.display = "block";
-        }
+        // Firebase වෙත දත්ත යැවීම
+        database.ref('users/' + devId).set(userData).then(() => {
+            localStorage.setItem("pv_user_id", devId);
+            showLockScreen(devId);
+        });
     }
 
     function handleUnlock() {
-        const input = document.getElementById('unlock-input').value;
-        const user = JSON.parse(localStorage.getItem("pv_current_user"));
-        const db = JSON.parse(localStorage.getItem("pv_admin_database") || "[]");
-        const entry = db.find(u => u.devId === user.devId);
+        const inputCode = document.getElementById('unlock-input').value;
+        const devId = localStorage.getItem("pv_user_id");
 
-        if(entry && input === entry.unlockCode && entry.unlockCode !== "PENDING") {
-            localStorage.setItem("pv_unlocked", "true");
-            showDashboard();
-        } else alert("වැරදි කේතයකි! කරුණාකර Admin සම්බන්ධ කරගන්න.");
+        if(!inputCode) return alert("කේතය ඇතුළත් කරන්න!");
+
+        // Firebase එකෙන් Code එක පරීක්ෂා කිරීම
+        database.ref('users/' + devId).once('value').then((snapshot) => {
+            const data = snapshot.val();
+            if (data && data.unlockCode === inputCode) {
+                localStorage.setItem("pv_unlocked", "true");
+                showDashboard();
+            } else {
+                alert("වැරදි කේතයකි! කරුණාකර Admin සම්බන්ධ කරගන්න.");
+            }
+        });
     }
 
     function runAIScan() {
@@ -135,7 +165,13 @@
     }
 
     function showDashboard() { hideAll(); document.getElementById("dashboard").style.display = "block"; }
-    function showLockScreen() { hideAll(); const user = JSON.parse(localStorage.getItem("pv_current_user")); document.getElementById("display-device-id").innerText = user.devId; document.getElementById("lock-screen").style.display = "block"; }
+    
+    function showLockScreen(devId) { 
+        hideAll(); 
+        document.getElementById("display-device-id").innerText = devId; 
+        document.getElementById("lock-screen").style.display = "block"; 
+    }
+
     function logout() { localStorage.clear(); location.reload(); }
     function hideAll() { document.querySelectorAll('.container').forEach(c => c.style.display = 'none'); }
     function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
